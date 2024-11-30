@@ -116,19 +116,19 @@ public:
                K_(ballot_number), K_(debug_ts), K_(biggest_min_cluster_version_ever_seen));
   #undef MSG_TYPE
 protected:
-  int64_t id_;
-  common::ObAddr sender_;
-  common::ObAddr receiver_;
-  int64_t restart_counter_;
-  int64_t ballot_number_;
+  int64_t id_;// 消息ID，用于唯一标识一条消息
+  common::ObAddr sender_; //发送者地址
+  common::ObAddr receiver_;// 接收者地址
+  int64_t restart_counter_; // 重启计数器，用于跟踪节点的重启次数
+  int64_t ballot_number_;//提案编号
   LsBiggestMinClusterVersionEverSeen biggest_min_cluster_version_ever_seen_;
-  int64_t msg_type_;
+  int64_t msg_type_;//// 消息类型，用于标识消息的具体用途，如 PrepareRequest, PrepareResponse 等
   ElectionMsgDebugTs debug_ts_;
 };
 OB_SERIALIZE_MEMBER_TEMP(inline, ElectionMsgBase, id_, sender_, receiver_,
                          restart_counter_, ballot_number_, msg_type_, debug_ts_,
                          biggest_min_cluster_version_ever_seen_.version_);
-
+// 选举 election_proposer.cpp 请求以及回复
 class ElectionPrepareRequestMsgMiddle : public ElectionMsgBase
 {
   OB_UNIS_VERSION(1);
@@ -164,6 +164,7 @@ OB_SERIALIZE_MEMBER_TEMP(inline, (ElectionPrepareRequestMsgMiddle, ElectionMsgBa
                          is_buffer_valid_, membership_version_, priority_buffer_, inner_priority_seed_);
 
 // design wrapper class to record serialize/deserialize time, for debugging
+//选举 prepare 请求以及回复
 class ElectionPrepareRequestMsg : public ElectionPrepareRequestMsgMiddle
 {
 public:
@@ -275,6 +276,7 @@ OB_SERIALIZE_MEMBER_TEMP(inline, (ElectionAcceptRequestMsgMiddle, ElectionMsgBas
                          lease_start_ts_on_proposer_, lease_interval_, membership_version_);
 
 // design wrapper class to record serialize/deserialize time, for debugging
+//选举 accept 请求以及回复
 class ElectionAcceptRequestMsg : public ElectionAcceptRequestMsgMiddle
 {
 public:
@@ -385,13 +387,13 @@ public:
                K_(membership_version), K_(request_debug_ts));
   #undef BASE
 protected:
-  int64_t lease_started_ts_on_proposer_;
-  int64_t lease_interval_;
+  int64_t lease_started_ts_on_proposer_; // 提议者上的租约开始时间戳 ??
+  int64_t lease_interval_;  // 提议者上的租约开始时间戳
   int64_t reserved_flag_;
   bool accepted_;
-  bool is_buffer_valid_;
-  uint64_t inner_priority_seed_;
-  LogConfigVersion responsed_membership_version_;
+  bool is_buffer_valid_; // 优先级缓冲区是否有效
+  uint64_t inner_priority_seed_; // 内部优先级种子
+  LogConfigVersion responsed_membership_version_;// 成员关系版本
   LogConfigVersion membership_version_;
   ElectionMsgDebugTs request_debug_ts_;
   unsigned char priority_buffer_[PRIORITY_BUFFER_SIZE];
@@ -400,6 +402,7 @@ protected:
 };
 
 // design wrapper class to record serialize/deserialize time, for debugging
+// 选举 accept 请求以及回复
 class ElectionAcceptResponseMsg : public ElectionAcceptResponseMsgMiddle
 {
 public:

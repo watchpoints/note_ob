@@ -366,6 +366,7 @@ int ElectionImpl::broadcast_(const ElectionPrepareRequestMsg &msg,
   ELECT_TIME_GUARD(500_ms);
   #define PRINT_WRAPPER KR(ret), K(*this), K(msg)
   int ret = common::OB_SUCCESS;
+	//MECE原则：每个分支都执行
   if (CLICK_FAIL(msg_handler_->broadcast(msg, list))) {
     LOG_NONE(WARN, "broadcast msg failed");
   } else {

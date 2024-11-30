@@ -346,6 +346,10 @@ void ElectionProposer::stop()
 void ElectionProposer::prepare(const ObRole role)
 {
   ELECT_TIME_GUARD(500_ms);
+	//一个时间阈值为 500 毫秒的时间保护。
+	//当被保护的代码块执行时间超过这个时间阈值时，
+	//TimeGuard 可能会采取行动，如记录日志、触发警告或异常等。
+	
   #define PRINT_WRAPPER KR(ret), K(role), K(*this)
   int ret = OB_SUCCESS;
   int64_t cur_ts = ObClockGenerator::getClock();
@@ -354,7 +358,9 @@ void ElectionProposer::prepare(const ObRole role)
     LOG_PHASE(INFO, phase, "memberlist is empty, give up do prepare this time");
   } else if (!is_self_in_memberlist_()) {
     LOG_PHASE(INFO, phase, "self is not in memberlist, give up do prepare");
-  } else if (role == ObRole::FOLLOWER && cur_ts - last_do_prepare_ts_ < CALCULATE_MAX_ELECT_COST_TIME() / 2) {// 若这是一个一乎动作，且距离上一次一呼百应的时间点过近，该次一乎调度无效
+		//际上确实是一个工程优化手段，在特定的并发顺序下可能造成一轮选举无效，把ballot number推得比预期的大一些，但实际上不太重要。
+  } else if (role == ObRole::FOLLOWER && cur_ts - last_do_prepare_ts_ < CALCULATE_MAX_ELECT_COST_TIME() / 2) {
+		// 若这是一个一乎动作，且距离上一次一呼百应的时间点过近，该次一乎调度无效
     LOG_PHASE(INFO, phase, "the prepare action just happened, need wait next time");
   } else {
     last_do_prepare_ts_ = cur_ts;
@@ -496,6 +502,7 @@ void ElectionProposer::on_prepare_response(const ElectionPrepareResponseMsg &pre
   #undef PRINT_WRAPPER
 }
 
+//续约
 void ElectionProposer::propose()
 {
   ELECT_TIME_GUARD(500_ms);
@@ -549,6 +556,7 @@ void ElectionProposer::on_accept_response(const ElectionAcceptResponseMsg &accep
   // 4. 更新lease
   } else {
     // 4.1 如果当前lease已经失效，中间可能出现过其他的leader，而本副本还未感知，需要先卸任
+    // 重新计算自己的租约到期时间戳
     if (OB_UNLIKELY(leader_revoke_if_lease_expired_(RoleChangeReason::LeaseExpiredToRevoke))) {
       LOG_PHASE(WARN, phase, "lease is expired, need revoke before takeover");
     }
